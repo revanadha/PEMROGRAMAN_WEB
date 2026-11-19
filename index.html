@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STRIDE // Running Performance & VDOT Calculator</title>
+  <meta name="description" content="Kalkulator performa lari: Pace, Waktu, Jarak, LTHR, Jack Daniels VDOT, dan penyesuaian cuaca real-time dengan Open-Meteo API.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  
+  <!-- Typography: Athletic, modern, high legibility -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <a class="skip-link" href="#calculator-suite">Langsung ke kalkulator</a>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-logo">
+        <span class="logo-mark"></span>
+        <span class="logo-text">STRIDE<span class="accent-dot">.</span>LAB</span>
+      </div>
+
+      <nav class="nav-tabs" role="tablist" aria-label="Menu Fitur Lari">
+        <button class="nav-tab active" id="nav-tab-pace" role="tab" data-tab="tab-pace" aria-selected="true" aria-controls="tab-pace" tabindex="0">
+          <span class="tab-index">01</span> Pace & Jarak
+        </button>
+        <button class="nav-tab" id="nav-tab-lthr" role="tab" data-tab="tab-lthr" aria-selected="false" aria-controls="tab-lthr" tabindex="-1">
+          <span class="tab-index">02</span> LTHR & Zona HR
+        </button>
+        <button class="nav-tab" id="nav-tab-vdot" role="tab" data-tab="tab-vdot" aria-selected="false" aria-controls="tab-vdot" tabindex="-1">
+          <span class="tab-index">03</span> VDOT Jack Daniels
+        </button>
+        <button class="nav-tab" id="nav-tab-weather" role="tab" data-tab="tab-weather" aria-selected="false" aria-controls="tab-weather" tabindex="-1">
+          <span class="tab-index">04</span> Cuaca & Heat Adjustment
+        </button>
+      </nav>
+
+      <div class="nav-quick-weather" id="navQuickWeather" title="Kondisi cuaca lokasi aktif">
+        <span class="quick-weather-city">Jakarta</span>
+        <span class="quick-weather-temp">--°C</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section with Athletic Speed Framing (Inspired by Reference) -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          OPTIMALKAN <br>
+          <span class="text-accent">PERFORMA LARI</span> DENGAN DATA
+        </h1>
+        <p class="hero-desc">
+          Hitung target pace, ambang batas asam laktat (LTHR), skor VDOT Jack Daniels, hingga rekomendasi penyesuaian pace berdasarkan cuaca dan kelembapan real-time.
+        </p>
+        <div class="hero-actions">
+          <a href="#calculator-suite" class="btn btn-primary">Mulai Menghitung</a>
+          <button class="btn btn-outline" id="btnQuickPaceScroll">Cek VDOT 5K/10K</button>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="speed-chevron chevron-1"></div>
+        <div class="speed-chevron chevron-2"></div>
+        <div class="speed-chevron chevron-3"></div>
+        
+        <div class="hero-photo-wrapper">
+          <img 
+            src="hero-runner.jpg" 
+            alt="Pelari fokus di trek pagi hari" 
+            class="hero-photo"
+            width="900"
+            height="600"
+            loading="eager"
+            fetchpriority="high"
+          >
+          <div class="photo-overlay-card">
+            <div class="metric-label">VDOT TERKINI</div>
+            <div class="metric-value"><span id="heroVdotValue">--</span> <span class="metric-unit">VDOT</span></div>
+            <div class="metric-sub">Dari PB yang kamu masukkan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Calculator Suite (Tabs) -->
+  <main class="main-suite" id="calculator-suite" tabindex="-1">
+    <div class="suite-container">
+
+      <!-- ================= TAB 1: PACE, JARAK, & WAKTU ================= -->
+      <section id="tab-pace" class="calculator-panel active" role="tabpanel" aria-labelledby="nav-tab-pace" tabindex="0">
+        <div class="panel-header">
+          <div>
+            <span class="section-tag">FITUR 01 // TRIANGULAR CALCULATOR</span>
+            <h2 id="tab-pace-heading" class="panel-title">Kalkulator Pace, Waktu, & Jarak</h2>
+            <p class="panel-subtitle">Pilih variabel yang ingin kamu cari, lalu isi dua variabel lainnya.</p>
+          </div>
+          <div class="calc-mode-selector" role="radiogroup" aria-label="Mode Perhitungan">
+            <button type="button" class="mode-btn active" role="radio" aria-checked="true" tabindex="0" data-mode="pace">Hitung Pace</button>
+            <button type="button" class="mode-btn" role="radio" aria-checked="false" tabindex="-1" data-mode="time">Hitung Waktu</button>
+            <button type="button" class="mode-btn" role="radio" aria-checked="false" tabindex="-1" data-mode="distance">Hitung Jarak</button>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- Form Inputs -->
+          <div class="panel-card form-card">
+            <form>
+              
+              <!-- Distance Group -->
+              <div class="form-group" id="groupDistance">
+                <label for="inputDistance" class="form-label">
+                  Jarak Tempuh
+                  <span class="label-hint">(Kilometer)</span>
+                </label>
+                <div class="input-with-unit">
+                  <input type="number" id="inputDistance" step="0.01" min="0.1" value="10" placeholder="10.00" class="form-input">
+                  <span class="unit-badge">KM</span>
+                </div>
+                <!-- Quick Presets -->
+                <div class="presets-row" aria-label="Preset Jarak Lari">
+                  <button type="button" class="preset-pill" data-distance="5" aria-pressed="false">5K</button>
+                  <button type="button" class="preset-pill active" data-distance="10" aria-pressed="true">10K</button>
+                  <button type="button" class="preset-pill" data-distance="21.0975" aria-pressed="false">Half Marathon</button>
+                  <button type="button" class="preset-pill" data-distance="42.195" aria-pressed="false">Marathon</button>
+                </div>
+              </div>
+
+              <!-- Time Group -->
+              <div class="form-group" id="groupTime">
+                <span class="form-label" id="timeGroupLabel">
+                  Total Waktu Tempuh
+                  <span class="label-hint">(Jam : Menit : Detik)</span>
+                </span>
+                <div class="time-input-group" role="group" aria-labelledby="timeGroupLabel">
+                  <div class="time-field">
+                    <input type="number" id="timeHours" min="0" max="99" value="0" placeholder="00" class="form-input text-center" aria-label="Jam">
+                    <span class="time-unit">Jam</span>
+                  </div>
+                  <span class="time-separator">:</span>
+                  <div class="time-field">
+                    <input type="number" id="timeMinutes" min="0" max="59" value="50" placeholder="00" class="form-input text-center" aria-label="Menit">
+                    <span class="time-unit">Mnt</span>
+                  </div>
+                  <span class="time-separator">:</span>
+                  <div class="time-field">
+                    <input type="number" id="timeSeconds" min="0" max="59" value="0" placeholder="00" class="form-input text-center" aria-label="Detik">
+                    <span class="time-unit">Dtk</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pace Group -->
+              <div class="form-group" id="groupPace" hidden>
+                <span class="form-label" id="paceGroupLabel">
+                  Target Pace
+                  <span class="label-hint">(Menit : Detik per KM)</span>
+                </span>
+                <div class="time-input-group" role="group" aria-labelledby="paceGroupLabel">
+                  <div class="time-field">
+                    <input type="number" id="paceMinutes" min="2" max="20" value="5" placeholder="05" class="form-input text-center" aria-label="Menit per kilometer">
+                    <span class="time-unit">Mnt /km</span>
+                  </div>
+                  <span class="time-separator">:</span>
+                  <div class="time-field">
+                    <input type="number" id="paceSeconds" min="0" max="59" value="0" placeholder="00" class="form-input text-center" aria-label="Detik per kilometer">
+                    <span class="time-unit">Dtk /km</span>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="btnCalculatePace" class="btn btn-primary btn-block">Hitung Sekarang</button>
+            </form>
+          </div>
+
+          <!-- Output & Splits -->
+          <div class="panel-card result-card">
+            <div class="result-badge-container">
+              <span class="result-tag" id="resultPaceTitle">HASIL TARGET PACE</span>
+              <div class="primary-stat" id="primaryPaceStat" aria-live="polite" aria-atomic="true">
+                05:00 <span class="stat-unit">/KM</span>
+              </div>
+              <div class="secondary-stats-row">
+                <div class="stat-box">
+                  <span class="stat-box-label">Kecepatan Rata-rata</span>
+                  <span class="stat-box-value" id="statSpeedKmh">12.00 km/h</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-label">Pace per Mil</span>
+                  <span class="stat-box-value" id="statPaceMile">08:03 /mi</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kilometer Splits Table Preview -->
+            <div class="splits-wrapper">
+              <div class="splits-header">
+                <h3>Estimasi Split Kilometer (Pacing Chart)</h3>
+                <span class="splits-count" id="splitsSummary">10 x 1 KM</span>
+              </div>
+              <div class="splits-table-scroll">
+                <table class="splits-table">
+                  <thead>
+                    <tr>
+                      <th>Kilometer</th>
+                      <th>Split Time</th>
+                      <th>Total Elapsed</th>
+                    </tr>
+                  </thead>
+                  <tbody id="splitsTableBody">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: LTHR & ZONA HEART RATE ================= -->
+      <section id="tab-lthr" class="calculator-panel" role="tabpanel" aria-labelledby="nav-tab-lthr" tabindex="0" hidden>
+        <div class="panel-header">
+          <div>
+            <span class="section-tag">FITUR 02 // CARDIAC INTENSITY ZONES</span>
+            <h2 id="tab-lthr-heading" class="panel-title">Perkiraan LTHR & 5 Heart Rate Zones</h2>
+            <p class="panel-subtitle">Tentukan ambang laktat untuk melatih sistem aerobik & ambang batas lelah secara terukur.</p>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- Input Form -->
+          <div class="panel-card form-card">
+            <div class="method-selector">
+              <label for="lthrMethod" class="form-label">Pilih Metode Perhitungan</label>
+              <div class="custom-select-wrapper">
+                <select id="lthrMethod" class="form-select">
+                  <option value="friel">Uji 30-Menit Time Trial (Metode Joe Friel - Paling Akurat)</option>
+                  <option value="hrMax">Estimasi dari Max Heart Rate (% HR Max)</option>
+                  <option value="ageFormula">Estimasi Berdasarkan Usia (Formula Gellish)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Field for Joe Friel -->
+            <div class="form-group" id="groupFriel">
+              <label for="inputFrielHR" class="form-label">
+                Rata-rata Denyut Nadi 20 Menit Terakhir (TT)
+                <span class="label-hint">(BPM)</span>
+              </label>
+              <div class="input-with-unit">
+                <input type="number" id="inputFrielHR" min="100" max="230" value="168" class="form-input">
+                <span class="unit-badge">BPM</span>
+              </div>
+              <p class="field-guide">
+                Lakukan lari solo 30 menit sekuat tenaga yang stabil. Catat rata-rata HR di 20 menit terakhir.
+              </p>
+            </div>
+
+            <!-- Field for Max HR -->
+            <div class="form-group" id="groupMaxHR" hidden>
+              <label for="inputMaxHR" class="form-label">
+                Max Heart Rate (HR Max)
+                <span class="label-hint">(BPM)</span>
+              </label>
+              <div class="input-with-unit">
+                <input type="number" id="inputMaxHR" min="130" max="230" value="190" class="form-input">
+                <span class="unit-badge">BPM</span>
+              </div>
+              <p class="field-guide">
+                Berdasarkan uji sprint tanjakan atau angka tertinggi di smartwatch saat latihan maksimal.
+              </p>
+            </div>
+
+            <!-- Field for Age -->
+            <div class="form-group" id="groupAge" hidden>
+              <label for="inputAge" class="form-label">
+                Usia Saat Ini
+                <span class="label-hint">(Tahun)</span>
+              </label>
+              <div class="input-with-unit">
+                <input type="number" id="inputAge" min="14" max="90" value="22" class="form-input">
+                <span class="unit-badge">THN</span>
+              </div>
+              <p class="field-guide">
+                Menggunakan formula Gellish: <code>HR Max = 207 - (0.7 × Usia)</code>. LTHR dihitung ~88% dari Max HR.
+              </p>
+            </div>
+
+            <button type="button" id="btnCalculateLTHR" class="btn btn-primary btn-block">Hitung Zona LTHR</button>
+
+            <div class="callout-box">
+              <div class="callout-text">
+                <strong>Apa itu LTHR?</strong> Lactate Threshold Heart Rate adalah detak jantung saat asam laktat mulai menumpuk lebih cepat daripada kemampuan tubuh membersihkannya. Zona di bawah LTHR melatih daya tahan (endurance).
+              </div>
+            </div>
+          </div>
+
+          <!-- Zones Result -->
+          <div class="panel-card result-card">
+            <div class="result-badge-container">
+              <span class="result-tag">ESTIMASI LACTATE THRESHOLD</span>
+              <div class="primary-stat" id="statLTHRValue" aria-live="polite" aria-atomic="true">
+                168 <span class="stat-unit">BPM</span>
+              </div>
+              <div class="secondary-stats-row">
+                <div class="stat-box">
+                  <span class="stat-box-label">Metode Dipakai</span>
+                  <span class="stat-box-value" id="statLTHRMethod">Joe Friel 30-min TT</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-label">Ambang Z4-Z5</span>
+                  <span class="stat-box-value" id="statThresholdRange">160 - 171 BPM</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Heart Rate Zones Cards -->
+            <div class="hr-zones-list" id="hrZonesContainer">
+              <!-- Dynamically populated by JS for Zone 1 to Zone 5 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: VDOT JACK DANIELS ================= -->
+      <section id="tab-vdot" class="calculator-panel" role="tabpanel" aria-labelledby="nav-tab-vdot" tabindex="0" hidden>
+        <div class="panel-header">
+          <div>
+            <span class="section-tag">FITUR 03 // SCIENTIFIC TRAINING PACES</span>
+            <h2 id="tab-vdot-heading" class="panel-title">Kalkulator VDOT Jack Daniels</h2>
+            <p class="panel-subtitle">Masukkan Personal Best (PB) 5K atau 10K untuk mengukur kapasitas aerobik dan target pace latihan terstruktur.</p>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- PB Input -->
+          <div class="panel-card form-card">
+            <form>
+              <div class="form-group">
+                <label for="vdotRaceDistance" class="form-label">Jarak Personal Best (PB)</label>
+                <div class="custom-select-wrapper">
+                  <select id="vdotRaceDistance" class="form-select">
+                    <option value="5000" selected>5 Kilometer (5K)</option>
+                    <option value="10000">10 Kilometer (10K)</option>
+                    <option value="21097.5">Half Marathon (21.1 km)</option>
+                    <option value="42195">Full Marathon (42.2 km)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <span class="form-label" id="vdotTimeGroupLabel">
+                  Waktu Catatan Terbaik (PB)
+                  <span class="label-hint">(Jam : Menit : Detik)</span>
+                </span>
+                <div class="time-input-group" role="group" aria-labelledby="vdotTimeGroupLabel">
+                  <div class="time-field">
+                    <input type="number" id="vdotHours" min="0" max="10" value="0" class="form-input text-center" aria-label="Jam">
+                    <span class="time-unit">Jam</span>
+                  </div>
+                  <span class="time-separator">:</span>
+                  <div class="time-field">
+                    <input type="number" id="vdotMinutes" min="0" max="59" value="23" class="form-input text-center" aria-label="Menit">
+                    <span class="time-unit">Mnt</span>
+                  </div>
+                  <span class="time-separator">:</span>
+                  <div class="time-field">
+                    <input type="number" id="vdotSeconds" min="0" max="59" value="45" class="form-input text-center" aria-label="Detik">
+                    <span class="time-unit">Dtk</span>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="btnCalculateVDOT" class="btn btn-primary btn-block">Hitung Skor VDOT</button>
+
+              <div class="callout-box">
+                <div class="callout-text">
+                  <strong>Formula VDOT:</strong> Dikembangkan oleh Dr. Jack Daniels & Jimmy Gilbert. Skor VDOT mencerminkan VO2max efektif dan menentukan rentang pace aman agar latihan tidak berujung overtraining atau cidera.
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- VDOT Result & Tables -->
+          <div class="panel-card result-card">
+            <div class="result-badge-container">
+              <span class="result-tag">SKOR VDOT ANDA</span>
+              <div class="primary-stat" id="statVDOTValue" aria-live="polite" aria-atomic="true">
+                42.5 <span class="stat-unit">VDOT</span>
+              </div>
+              <div class="secondary-stats-row">
+                <div class="stat-box">
+                  <span class="stat-box-label">Level Pelari</span>
+                  <span class="stat-box-value" id="statRunnerTier">Intermediate Runner</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-label">Baseline Pace</span>
+                  <span class="stat-box-value" id="statVdotBasePace">04:45 /km</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Training Paces (E, M, T, I, R) -->
+            <div class="paces-wrapper">
+              <h3 class="subcard-title">Rekomendasi Pace Latihan (Jack Daniels Formula)</h3>
+              <div class="training-pace-grid" id="trainingPacesContainer">
+                <!-- Dynamically generated -->
+              </div>
+            </div>
+
+            <!-- Race Equivalency Predictions -->
+            <div class="race-equiv-wrapper">
+              <h3 class="subcard-title">Prediksi Waktu Lomba Setara (Equivalent Race Times)</h3>
+              <div class="race-equiv-grid" id="raceEquivContainer">
+                <!-- Dynamically generated -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: WEATHER & HEAT ADJUSTMENT ================= -->
+      <section id="tab-weather" class="calculator-panel" role="tabpanel" aria-labelledby="nav-tab-weather" tabindex="0" hidden>
+        <div class="panel-header">
+          <div>
+            <span class="section-tag">FITUR 04 // OPEN-METEO API INTEGRATION</span>
+            <h2 id="tab-weather-heading" class="panel-title">Kondisi Cuaca & Running Heat Adjustment</h2>
+            <p class="panel-subtitle">Suhu dan kelembapan ekstrem menaikkan denyut nadi. Dapatkan koreksi pace otomatis agar latihan tetap aman.</p>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- Weather Search & Live Metrics -->
+          <div class="panel-card form-card">
+            <label for="selectCity" class="form-label">Lokasi Latihan</label>
+            <div class="location-control-row">
+              <div class="custom-select-wrapper flex-grow">
+                <select id="selectCity" class="form-select">
+                  <option value="-6.2088,106.8456" selected>Jakarta, DKI Jakarta</option>
+                  <option value="-6.9175,107.6191">Bandung, Jawa Barat</option>
+                  <option value="-7.2575,112.7521">Surabaya, Jawa Timur</option>
+                  <option value="-7.7956,110.3695">Yogyakarta, DI Yogyakarta</option>
+                  <option value="-6.9932,110.4203">Semarang, Jawa Tengah</option>
+                  <option value="3.5952,98.6722">Medan, Sumatera Utara</option>
+                  <option value="-2.9761,104.7754">Palembang, Sumatera Selatan</option>
+                  <option value="-8.4095,115.1889">Denpasar, Bali</option>
+                  <option value="-5.1477,119.4327">Makassar, Sulawesi Selatan</option>
+                  <option value="-1.2379,116.8529">Balikpapan, Kalimantan Timur</option>
+                  <option value="-7.9666,112.6326">Malang, Jawa Timur</option>
+                  <option value="-2.5489,140.7181">Jayapura, Papua</option>
+                </select>
+              </div>
+              <button type="button" id="btnGeolocate" class="btn btn-outline" title="Gunakan Lokasi GPS Saya">
+                Lokasi GPS
+              </button>
+            </div>
+
+            <!-- Target Pace Input for Adjustment -->
+            <div class="form-group mt-16">
+              <span class="form-label" id="weatherPaceGroupLabel">
+                Pace Rencana Latihan Hari Ini
+                <span class="label-hint">(Menit : Detik /km)</span>
+              </span>
+              <div class="time-input-group" role="group" aria-labelledby="weatherPaceGroupLabel">
+                <div class="time-field">
+                  <input type="number" id="weatherBasePaceMin" min="3" max="15" value="5" class="form-input text-center" aria-label="Menit per kilometer">
+                  <span class="time-unit">Mnt</span>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="time-field">
+                  <input type="number" id="weatherBasePaceSec" min="0" max="59" value="15" class="form-input text-center" aria-label="Detik per kilometer">
+                  <span class="time-unit">Dtk</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" id="btnRefreshWeather" class="btn btn-primary btn-block">Muat Ulang Cuaca & Kalkulasi</button>
+
+            <!-- Weather Details Grid -->
+            <div class="weather-metrics-grid mt-20" id="weatherMetricsGrid">
+              <div class="weather-tile">
+                <svg class="tile-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 14.76V5a2 2 0 1 0-4 0v9.76a4 4 0 1 0 4 0z"/>
+                </svg>
+                <span class="tile-label">Suhu Udara</span>
+                <span class="tile-val" id="weatherTemp">--°C</span>
+                <span class="tile-sub" id="weatherCondition">--</span>
+              </div>
+              <div class="weather-tile">
+                <svg class="tile-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                </svg>
+                <span class="tile-label">Kelembapan</span>
+                <span class="tile-val" id="weatherHumidity">--%</span>
+              </div>
+              <div class="weather-tile">
+                <svg class="tile-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="4"/>
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                </svg>
+                <span class="tile-label">Terasa Seperti</span>
+                <span class="tile-val" id="weatherApparent">--°C</span>
+              </div>
+              <div class="weather-tile">
+                <svg class="tile-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 8h10a3 3 0 1 0-3-3"/>
+                  <path d="M3 12h14a3 3 0 1 1-3 3"/>
+                  <path d="M3 16h7"/>
+                </svg>
+                <span class="tile-label">Kecepatan Angin</span>
+                <span class="tile-val" id="weatherWind">-- km/h</span>
+              </div>
+            </div>
+
+            <div class="api-attribution">
+              Data cuaca diperoleh secara live dari <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo API</a>.
+            </div>
+          </div>
+
+          <!-- Heat Impact & Pace Adjustment Output -->
+          <div class="panel-card result-card">
+            <div class="result-badge-container">
+              <span class="result-tag">TARGET PACE TERKOREKSI CUACA</span>
+              <div class="primary-stat" id="statAdjustedPace" aria-live="polite" aria-atomic="true">
+                05:27 <span class="stat-unit">/KM</span>
+              </div>
+              <div class="secondary-stats-row">
+                <div class="stat-box">
+                  <span class="stat-box-label">Penyesuaian Pace</span>
+                  <span class="stat-box-value text-accent" id="statPaceOffset">+12 dtk/km</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-label">Indeks Panas (T+DewPoint)</span>
+                  <span class="stat-box-value" id="statHeatSum">-- °C</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Heat Stress Level Bar & Advice -->
+            <div class="heat-advice-box" id="heatAdviceBox" aria-live="polite">
+              <div class="advice-header">
+                <span class="advice-indicator" id="adviceIndicator"></span>
+                <h3 id="adviceTitle">Menganalisis Kondisi...</h3>
+              </div>
+              <p class="advice-text" id="adviceDetail">
+                Pilih lokasi atau aktifkan GPS untuk mengkalkulasi pengaruh suhu terhadap fisiologi lari kamu.
+              </p>
+              <div class="hydration-guideline">
+                <strong>Rekomendasi Hidrasi & Waktu:</strong>
+                <span id="hydrationAdvice">Minum 150-250ml air setiap 20-25 menit lari.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <span class="logo-mark"></span>
+        <span class="footer-brand-title">STRIDE RUNNING LAB</span>
+      </div>
+      <div class="footer-credits">
+        <span>© 2026 STRIDE LAB // Athletic Running Science</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,31 @@
+# Sistem operasi
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Dependensi dan hasil build (jika nanti ditambahkan)
+node_modules/
+dist/
+build/
+
+# Environment
+.env
+.env.*
+
+# Log dan cache
+*.log
+npm-debug.log*
+.cache/
+tmp/
+
+# Konfigurasi lokal AI, bukan bagian dari website
+.agents/
+AGENTS.md
+
+# Folder screenshots/ sengaja tidak diabaikan karena dipakai di README
