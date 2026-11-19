@@ -73,9 +73,9 @@ Catatan: fitur cuaca dan font Google membutuhkan koneksi internet. Open-Meteo ti
 
 | No | Tampilan | Nama File | Preview |
 |----|----------|-----------|---------|
-| 1 | Hero dan Navbar | `01-hero.png` | _Belum ada_ |
-| 2 | Kalkulator Pace, Waktu, dan Jarak | `02-pace.png` | _Belum ada_ |
-| 3 | LTHR dan Zona Detak Jantung | `03-lthr.png` | _Belum ada_ |
-| 4 | VDOT dan Training Paces | `04-vdot.png` | _Belum ada_ |
-| 5 | Cuaca dan Heat Adjustment | `05-cuaca.png` | _Belum ada_ |
+| 1 | Hero dan Navbar | `01-hero.png` | <img src="screenshots/01-hero.png" width="300"> |
+| 2 | Kalkulator Pace, Waktu, dan Jarak | `02-pace.png` | <img src="screenshots/02-pace.png" width="300"> |
+| 3 | LTHR dan Zona Detak Jantung | `03-lthr.png` | <img src="screenshots/03-lthr.png" width="300"> |
+| 4 | VDOT dan Training Paces | `04-vdot.png` | <img src="screenshots/04-vdot.png" width="300"> |
+| 5 | Cuaca dan Heat Adjustment | `05-cuaca.png` | <img src="screenshots/05-cuaca.png" width="300"> |
 
