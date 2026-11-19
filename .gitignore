@@ -9,7 +9,7 @@ Desktop.ini
 *.swp
 *~
 
-# Dependensi dan hasil build (jika nanti ditambahkan)
+# Dependensi 
 node_modules/
 dist/
 build/
@@ -23,9 +23,6 @@ build/
 npm-debug.log*
 .cache/
 tmp/
-
-# Konfigurasi lokal AI, bukan bagian dari website
 .agents/
 AGENTS.md
 
-# Folder screenshots/ sengaja tidak diabaikan karena dipakai di README
